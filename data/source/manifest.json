@@ -1,0 +1,14 @@
+{
+  "dataset_id": "relate-docs",
+  "source_url": "https://relatedb.ai/docs/graph.json",
+  "schema_url": "https://relatedb.ai/docs/reference/docs-graph/",
+  "retrieved_date": "2026-11-17",
+  "source_verified": "1.0.1",
+  "format": 1,
+  "bytes": 6854955,
+  "sha256": "7efa0f16f8ff8d6d5b5dc021449a84a64f7f4f0902eae95c139b06ed0e714249",
+  "nodes": 4133,
+  "relationships": 9148,
+  "license": "Apache-2.0",
+  "attribution": "Relate Authors"
+}

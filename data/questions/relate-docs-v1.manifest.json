@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "status": "draft_for_semantic_review",
+  "question_file": "relate-docs-v1.jsonl",
+  "question_file_sha256": "02d114654ad2268b4b528c206ef3b10bfdbdedfcf5a66844ac86d6d18ecc186e",
+  "graph_snapshot_id": "d691ad319bfeb28b18d07ec5a2bc59eaeea2cf88f76ae6671294ac12beba78ae",
+  "question_count": 30,
+  "pilot_count": 10,
+  "held_out_count": 20,
+  "split_rule": "ascending SHA-256 of graph_snapshot_id + ':' + question_id"
+}
