@@ -10,7 +10,7 @@ from mcp.server.fastmcp import FastMCP
 
 from .cursor import Cursor
 from .graph import Graph, GraphError
-from .shortcuts import learn, reuse
+from .shortcuts import learn, list_shortcuts, reuse
 
 mcp = FastMCP("Waygraph")
 _graph: Graph | None = None
@@ -47,8 +47,14 @@ def _invoke(operation: Callable[[], Any]) -> dict[str, Any]:
 
 
 @mcp.tool()
+def search_nodes(query: str, label: str = "", limit: int = 10) -> dict:
+    """Search graph entities using hybrid lexical + native Relate full-text search to locate starting node IDs."""
+    return _invoke(lambda: {"nodes": graph().search_nodes(query, label=label or None, limit=limit)})
+
+
+@mcp.tool()
 def start_walk(session: str, origin: str, max_hops: int = 8) -> dict:
-    """Start a walk; result includes only the current node's offered outgoing edges."""
+    """Start a walk; result includes only offered outgoing edges and promoted shortcuts from origin."""
     def operation() -> dict:
         if not session or len(session) > 128:
             raise GraphError("session must contain 1-128 characters", "INVALID_ARGUMENT")
@@ -60,7 +66,7 @@ def start_walk(session: str, origin: str, max_hops: int = 8) -> dict:
 
 @mcp.tool()
 def inspect_walk(session: str) -> dict:
-    """Refresh the bounded list of edges that may be followed from this cursor."""
+    """Refresh the bounded list of edges and shortcuts that may be followed from this cursor."""
     return _invoke(lambda: _cursor(session).inspect())
 
 
@@ -71,24 +77,47 @@ def follow_edge(session: str, edge_id: str) -> dict:
 
 
 @mcp.tool()
+def take_shortcut(session: str, shortcut_id: str) -> dict:
+    """Validate a promoted shortcut fail-closed and advance the cursor across its verified path in one step."""
+    return _invoke(lambda: _cursor(session).take_shortcut(shortcut_id))
+
+
+@mcp.tool()
 def backtrack(session: str) -> dict:
-    """Undo one traversal step and refresh the available edges."""
+    """Undo one cursor step (single edge or shortcut jump) and refresh the available offers."""
     return _invoke(lambda: _cursor(session).backtrack())
 
 
 @mcp.tool()
 def get_walk(session: str) -> dict:
-    """Return the ordered node and edge IDs visited so far."""
+    """Return the ordered node and edge IDs visited so far, plus any shortcuts used."""
     return _invoke(lambda: _cursor(session).get_walk())
 
 
 @mcp.tool()
 def save_shortcut(session: str) -> dict:
-    """Learn an evidence-bearing shortcut from the current walk."""
+    """Learn an evidence-bearing shortcut from the current walk (promotes after 2 distinct verified walks)."""
     def operation() -> dict:
         cursor = _cursor(session)
         return learn(graph(), cursor.nodes[0], cursor.current, cursor.edges, observation_id=cursor.walk_id)
     return _invoke(operation)
+
+
+@mcp.tool()
+def find_shortcuts(origin: str = "", target: str = "", include_non_valid: bool = False, validate: bool = False, limit: int = 25) -> dict:
+    """List learned shortcuts in Relate, optionally filtering by origin/target or running live validation."""
+    return _invoke(
+        lambda: {
+            "shortcuts": list_shortcuts(
+                graph(),
+                origin=origin or None,
+                target=target or None,
+                include_non_valid=include_non_valid,
+                validate=validate,
+                limit=limit,
+            )
+        }
+    )
 
 
 @mcp.tool()

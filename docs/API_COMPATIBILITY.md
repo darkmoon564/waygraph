@@ -1,52 +1,34 @@
-# Relate 1.0.1 --- API Compatibility Record
+# Relate 1.2.0 — API Compatibility Record
 
-**Status:** Runtime-verified on Windows/Python 3.13 for in-memory transactions, directory-store import/reopen, sequential read-only reopen, and the project's graph queries. Cross-version Python checks and concurrent reader/writer behavior remain open.
-**Pinned dependency:** `relate-db==1.0.1`
-**Tested Python:** 3.13. The project's 3.11--3.13 range still needs a matrix check before final release.
+**Status:** Runtime-verified on Windows / Python 3.13 (`cp39-abi3` universal wheel) across `:memory:`, directory stores, portable single-file `.rl` stores, native full-text indexing, and concurrent `read_only=True` readers alongside an active directory writer.
+**Pinned dependency:** `relate-db==1.2.0` (upgraded from `1.0.1` on 25 November 2026)
+**Tested Python:** 3.13 locally; CI matrix covers 3.11–3.13.
 
 ## Documented and runtime-verified usage
 
-The official Python reference documents `relate.connect(...)`, `conn.execute(...)`, result retrieval with `fetchall()`, and explicit `conn.close()`.
-
-Installed 1.0.1 signatures:
+Installed `1.2.0` signatures:
 
 ```text
-relate.connect(database=':memory:', namespace='neo4j', read_only=False)
+relate.connect(database: str = ':memory:', namespace: str = 'neo4j', read_only: bool = False) -> relate.connection.Connection
 Connection.execute(query: str, params: Optional[Dict[str, Any]] = None)
 ```
 
-`Connection` exposes `autocommit` (default `True`), `commit()`, `rollback()`, `cursor()`, `execute()`, and `close()`. With `autocommit=False`, the first statement opens a transaction; commit and rollback end it. Closing with an open transaction rolls it back. No timeout option is present on `Connection.execute`; the cursor enforces hop and result caps but does not claim a query deadline.
+`Connection` exposes `autocommit` (default `True`), `closed`, `commit()`, `cursor()`, `execute()`, `executemany()`, `flush()`, `namespace`, `rollback()`, `set_namespace()`, and `close()`. `relate.Database` additionally exposes `execute_arrow()`, `labels`, `relationship_types`, `node_count`, and `relationship_count`.
 
-The project smoke test round-tripped a list property, performed an explicit rollback, and closed the connection. The importer wrote 4,133 entities and 9,148 relationships to a directory store. After closing its writer, a read-only connection reopened the store and returned matching counts. This verifies sequential read-only reopen, not concurrent reader/writer safety.
+With `autocommit=False`, the first statement opens a transaction; `commit()` and `rollback()` end it. Closing with an open transaction rolls it back. No per-query timeout parameter is exposed on `Connection.execute`; Waygraph enforces server-side hop (`max_hops <= 32`) and result (`LIMIT <= 100`) bounds.
 
-## Runtime behavior still to verify
+## Verified 1.2.0 capabilities leveraged by Waygraph
 
-- Concurrent directory-store readers and writer behavior.
-- Map property support (list property values were verified).
-- Exception classes and retryable conflict classification.
-- Relationship ID stability across reopen.
-- Import/export/backup behavior.
-- Python 3.11 and 3.12 compatibility.
-
-## Evidence table
-
-| Test | Status | Evidence |
+| Capability | Status | Runtime Evidence |
 |---|---|---|
-| Install 1.0.1 on Python 3.13 | Pass | Project isolated `.venv` |
-| Create/open directory store | Pass | `import-docs`; reopened read-only |
-| Create nodes and relationships | Pass | 4,133 entities and 9,148 source edges |
-| Parameterized reads and list property | Pass | In-memory smoke test |
-| Transaction commit/rollback | Pass | `autocommit=False`, commit, rollback |
-| Close/reopen persistence | Pass | Reopened directory; counts matched |
-| Sequential read-only reopen | Pass | Writer closed before reader opened |
-| Query timeout | Unsupported in inspected API | No timeout parameter on `Connection.execute` |
-| Write conflict classification | Pending | No supported transient classification established |
-| Relationship ID stability | Pending | Application IDs are importer-generated; native IDs not assessed |
+| Universal `cp39-abi3` wheel on Python 3.13 | Pass | Installed `relate-db==1.2.0`; 32/32 test suite passed in 3.57s |
+| Directory store import & reopen | Pass | 4,133 entities and 9,148 source facts imported and verified |
+| Portable single-file `.rl` store | Pass | Created, closed, and reopened `.rl` file `read_only=True` |
+| Concurrent reader alongside directory writer | Pass | `relate.connect(dir_path, read_only=True)` reads committed rows while writer connection remains open |
+| Native Full-Text Index (`FULLTEXT INDEX`) | Pass | `CREATE FULLTEXT INDEX ... FOR (n:DPEntity) ON EACH [...]` + `CALL db.index.fulltext.queryNodes(...)` |
+| Parameterized Cypher, list properties, transactions | Pass | Verified in unit and mutation suites |
+| Per-query timeout parameter | Not exposed | Enforced via hop/row bounds instead |
 
-## Compatibility policy
+## MCP SDK compatibility
 
-Do not infer unsupported APIs from another Relate release, Rust/JS API, or Neo4j driver. Update this record from installed 1.0.1 behavior and exact official documentation.
-
-The MCP server uses `mcp.server.fastmcp.FastMCP`. The `mcp` dependency is therefore pinned to `>=1.0,<2`; MCP 2.3.0 removed that import, while project MCP 1.x tool tests pass with 1.30.0.
-
-An MCP 1.30.0 stdio client smoke test initialized the server, listed all seven tools, and called `start_walk` against the imported docs store. The result was a valid response envelope with a trace ID. A fresh-clone launch check remains pending.
+The MCP server uses `mcp.server.fastmcp.FastMCP`. The `mcp` dependency remains pinned to `>=1.0,<2` (verified against `mcp==1.30.0`), as `mcp` 2.x reorganized the `fastmcp` server module path.

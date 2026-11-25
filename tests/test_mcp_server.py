@@ -62,3 +62,21 @@ def test_repeated_save_in_one_walk_does_not_promote(server_graph):
         else:
             assert saved['data']['status']=='VALID'
             assert saved['data']['walk_count']==2
+
+    # Warm session discovers and takes the promoted shortcut in 1 step
+    warm = mcp_server.start_walk('walk-warm', 'python', max_hops=4)
+    assert warm['ok'] is True
+    shortcut_id = warm['data']['shortcuts'][0]['shortcut_id']
+    jumped = mcp_server.take_shortcut('walk-warm', shortcut_id)
+    assert jumped['ok'] is True
+    assert jumped['data']['current']['id'] == 'transactions'
+    assert jumped['data']['hops'] == 3
+    assert jumped['data']['cursor_steps'] == 1
+
+    searched = mcp_server.search_nodes('Relate SDK', label='Capability')
+    assert searched['ok'] is True
+    assert searched['data']['nodes'][0]['id'] == 'sdk'
+
+    listed = mcp_server.find_shortcuts(origin='python', validate=True)
+    assert listed['ok'] is True
+    assert listed['data']['shortcuts'][0]['valid'] is True

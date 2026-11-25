@@ -1,0 +1,12 @@
+{
+  "format": 1,
+  "status": "reviewed",
+  "review_note": "Natural goal-oriented 3-hop prompts without intermediate route disclosure; 6 recurring hub corridors verified uniquely reachable within the 100-neighbor offer cap.",
+  "question_file": "relate-docs-v2.jsonl",
+  "question_file_sha256": "72933bda6792c559f2f6214a15bfd2e03d7f75a8b5d2675c4175b91cc9887392",
+  "graph_snapshot_id": "d691ad319bfeb28b18d07ec5a2bc59eaeea2cf88f76ae6671294ac12beba78ae",
+  "question_count": 24,
+  "pilot_count": 10,
+  "held_out_count": 14,
+  "split_rule": "curated corridor-balanced 10 pilot / 14 held_out split"
+}

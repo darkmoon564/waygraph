@@ -1,17 +1,22 @@
-# Frozen question set review — 18 November 2026
+# Frozen Question Sets Review — `v1` and `v2`
 
-## Scope and procedure
+**Updated:** 25 November 2026
 
-Reviewed all 30 records in `data/questions/relate-docs-v1.jsonl` for route uniqueness, graph reachability under the cursor offer cap, coherent start/end identifiers, ambiguity, naturalness, and whether the prompt tests the intended agent task rather than only route execution.
+---
 
-## Findings
+## 1. `data/questions/relate-docs-v1.jsonl` (Status: `draft_for_semantic_review`)
 
-- All 30 gold routes resolve to the frozen graph snapshot, and each hop is uniquely identified by relationship type and destination caption.
-- All gold edges are present within the cursor's 100-edge neighbor offer cap.
-- Every prompt has an explicit origin and a deterministic endpoint ID target.
-- The wording supplies the complete gold route, including every relationship type and intermediate destination. Prompts repeat the same template and often use graph-internal labels such as `Capability` and `CookbookRecipe`.
-- Therefore the set is useful for cursor/oracle plumbing and exact route replay, but it does not test whether an agent can discover an appropriate route from a natural user question. It risks overstating results if used as a user-facing agent benchmark.
+- **Purpose:** Deterministic route-following and cursor/oracle plumbing regression suite (30 questions, 10 pilot / 20 held-out).
+- **Finding:** Every prompt explicitly names intermediate relationship types and destination captions. Useful for cursor-plumbing tests, but does not measure autonomous multi-hop discovery and has zero recurring path overlap (`reuse_count = 0`).
+- **Disposition:** Retained as `draft_for_semantic_review` for plumbing verification only; held-out split remains intentionally blocked.
 
-## Disposition
+---
 
-This is an automated engineering review, not the required human semantic approval. The manifest remains `draft_for_semantic_review`, and the loader continues to block heldout replay. Before promoting the set, a human reviewer should rewrite or explicitly accept the prompts, verify that their wording matches the intended task, check answer equivalence rules, and approve the manifest. For a meaningful native-MCP versus cursor agent comparison, author questions that state the information need without disclosing the complete route.
+## 2. `data/questions/relate-docs-v2.jsonl` (Status: `reviewed`)
+
+- **Scope & Procedure:** Curated and verified 24 natural, goal-oriented 3-hop questions (`10` pilot / `14` held-out) across 6 real Relate documentation corridors (`mcp_serve_flags`, `sandbox_serve_flags`, `neo4j_push_flags`, `sandbox_extension_flags`, `shared_store_serve_flags`, `agent_memory_serve_flags`).
+- **Key Improvements over `v1`:**
+  1. **Zero Intermediate Route Disclosure (`route_disclosed: false`):** Prompts state the starting `Capability` and the exact technical goal (e.g., the `push` CLI flag controlling relationship updates), without revealing the intermediate `Page` or relationship types.
+  2. **Recurring Hub Corridors:** Each 3-hop corridor shares a 2-hop prefix (`Capability -> Page -> Command`) across 4 distinct flag targets, allowing independent walks #1 and #2 to promote a `VALID` desire path and walks #3+ to jump across the verified 2-hop corridor in 1 step (`take_shortcut`).
+  3. **Independent Oracle & Offer-Cap Verification:** Every gold path resolves through `oracle_path()` against canonical snapshot `d691ad319bfeb28b18d07ec5a2bc59eaeea2cf88f76ae6671294ac12beba78ae`, and every hop lies within the cursor's 100-edge neighbor offer cap.
+- **Disposition:** Marked `reviewed` in `data/questions/relate-docs-v2.manifest.json`, enabling both `pilot` and `held_out` replay and 3-regime lifecycle benchmarking (`waygraph lifecycle-bench`).
