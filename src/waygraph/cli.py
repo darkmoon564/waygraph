@@ -29,10 +29,11 @@ def main() -> None:
     sub.add_parser('seed')
     source = sub.add_parser('import-docs', help='Import the published Relate documentation graph JSON')
     source.add_argument('--file', type=Path, default=Path('data/source/relate-docs-graph.json'))
-    demo = sub.add_parser('demo', help='Build an isolated docs store, run the pilot, and run mutation checks')
+    demo = sub.add_parser('demo', help='Build an isolated docs store, run the v2 desire-path lifecycle benchmark, and run mutation checks')
     demo.add_argument('--db', type=Path, default=Path('data/relate/demo'))
     demo.add_argument('--output', type=Path, default=Path('experiments/results/demo'))
     demo.add_argument('--source', type=Path, default=Path('data/source/relate-docs-graph.json'))
+    demo.add_argument('--questions-file', type=Path, default=Path('data/questions/relate-docs-v2.jsonl'))
     q = sub.add_parser('questions')
     q.add_argument('--limit', type=int, default=30)
     q.add_argument('--output', type=Path)
@@ -87,23 +88,24 @@ def main() -> None:
             args.output.mkdir(parents=True, exist_ok=True)
             with Graph(str(args.db)) as graph:
                 imported = graph.import_source_graph(document, hashlib.sha256(source_bytes).hexdigest())
-            questions_path = Path('data/questions/relate-docs-v1.jsonl')
-            manifest_path = questions_path.with_suffix('.manifest.json')
-            with Graph(str(args.db)) as graph:
-                if questions_path.exists() and manifest_path.exists():
-                    from .questions import load_question_set
-                    questions = load_question_set(questions_path, expected_snapshot_id=graph.snapshot_id(), split='pilot')
-                    question_result = {'questions': len(questions), 'source': 'frozen'}
-                else:
-                    question_result = freeze_question_set(graph, questions_path, limit=30, pilot_count=10)
-            with Graph(str(args.db)) as graph:
-                pilot = run(graph, args.output, 10, questions_file=questions_path, split='pilot')
+            questions_path = args.questions_file
+            lifecycle = run_lifecycle_benchmark(
+                source_file=args.source,
+                question_file=questions_path,
+                split=None,
+            )
+            lifecycle_path = args.output / 'lifecycle_benchmark.json'
+            lifecycle_path.write_text(json.dumps(lifecycle, indent=2) + '\n', encoding='utf-8')
             mutations = run_matrix()
             mutation_path = args.output / 'mutations.json'
             mutation_path.write_text(json.dumps(mutations, indent=2) + '\n', encoding='utf-8')
-            result = {'import': imported, 'questions': question_result, 'pilot': pilot, 'mutations': {**mutations, 'output': str(mutation_path)}}
+            result = {
+                'import': imported,
+                'lifecycle': {**lifecycle, 'output': str(lifecycle_path)},
+                'mutations': {**mutations, 'output': str(mutation_path)},
+            }
             print(json.dumps(result, indent=2))
-            if not mutations['passed']:
+            if not mutations['passed'] or not lifecycle['post_mutation_vs_naive_cache']['passed']:
                 raise SystemExit(1)
             return
         if args.command == 'mutations':

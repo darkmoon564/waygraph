@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "data" / "source" / "relate-docs-graph.json"
 SHOWCASE = ROOT / "data" / "relate" / "showcase.rl"
 V2_QUESTIONS = ROOT / "data" / "questions" / "relate-docs-v2.jsonl"
+PAIRED6_QUESTIONS = ROOT / "data" / "questions" / "relate-docs-v2-paired6.jsonl"
 
 
 def test_v2_question_set_loads_pilot_and_held_out_and_matches_oracle():
@@ -16,8 +17,11 @@ def test_v2_question_set_loads_pilot_and_held_out_and_matches_oracle():
         snap = g.snapshot_id()
         pilot = load_question_set(V2_QUESTIONS, expected_snapshot_id=snap, split="pilot")
         held_out = load_question_set(V2_QUESTIONS, expected_snapshot_id=snap, split="held_out")
+        paired6 = load_question_set(PAIRED6_QUESTIONS, expected_snapshot_id=snap, split="pilot")
         assert len(pilot) == 10
         assert len(held_out) == 14
+        assert len(paired6) == 6
+        assert len({q["corridor_id"] for q in paired6}) == 2
         for q in pilot + held_out:
             assert q["difficulty"]["route_disclosed"] is False
             assert oracle_path(g, q["origin"], q["gold_edges"]) == q["gold_nodes"]

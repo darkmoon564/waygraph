@@ -1,9 +1,10 @@
 # Waygraph — Project Documentation Index
 
 ## Hackathon Strategy & Live Tracking
-- [Hackathon brief & competition landscape](HACKATHON_BRIEF_AND_COMPETITION.md) — Rules, rubric, judges, deadlines, and analysis of all 77 competitor entries
-- [Winning strategy & gap closure plan](WINNING_STRATEGY.md) — 6 gap closures, rubric mapping, and sprint roadmap to 1st place
-- [Implementation status & live progress](IMPLEMENTATION_STATUS.md) — What works today, open blockers, and immediate next actions
+- [Hackathon brief & competition landscape](HACKATHON_BRIEF_AND_COMPETITION.md) — Rules, rubric, judges, deadlines, and competitor landscape
+- [Winning strategy & gap closure plan](WINNING_STRATEGY.md) — Gap closures, rubric mapping, and sprint roadmap
+- [Reproducible benchmark results](BENCHMARK_RESULTS.md) — 3-regime Cold/Warm/Post-Mutation numbers & BYO-key LLM eval commands
+- [Implementation status & live progress](IMPLEMENTATION_STATUS.md) — What works today, open items, and next actions
 - [Architecture decision records (ADRs)](DECISIONS.md) — Core engineering & strategic decisions (`ADR-001` through `ADR-012`)
 
 ## Architecture, Protocol & Operations

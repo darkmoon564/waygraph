@@ -102,7 +102,7 @@ Conditions: `waygraph` (adaptive desire paths), `cursor` (cold constrained curso
 | **Post-Mutation Safety vs. Naive Cache (real docs graph)** | **Waygraph `6/6` pass** | **Naive Cache: `5/5` false-valid** · **Waygraph: `0` false-valid, `0` false-stale, `4/4` live reroutes** |
 | **Deterministic Mutation Matrix (synthetic, 8 failure modes)** | `8/8` pass | `0` false-valid, `0` false-stale |
 
-*(Deterministic lifecycle replays and mutation checks are reported separately from stochastic LLM agent runs—see [`docs/EXPERIMENT_PROTOCOL.md`](docs/EXPERIMENT_PROTOCOL.md) and [`docs/README.md`](docs/README.md).)*
+*(Deterministic lifecycle replays and mutation checks are reported separately from stochastic LLM agent runs—see [`docs/BENCHMARK_RESULTS.md`](docs/BENCHMARK_RESULTS.md), [`docs/EXPERIMENT_PROTOCOL.md`](docs/EXPERIMENT_PROTOCOL.md), and [`docs/README.md`](docs/README.md).)*
 
 ---
 

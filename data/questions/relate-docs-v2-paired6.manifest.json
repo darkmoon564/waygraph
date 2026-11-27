@@ -1,0 +1,12 @@
+{
+  "format": 1,
+  "status": "reviewed",
+  "review_note": "2-corridor (6-question) paired subset drawn verbatim from relate-docs-v2.jsonl for complete free-tier LLM A/B evaluation within 50 req/day.",
+  "question_file": "relate-docs-v2-paired6.jsonl",
+  "question_file_sha256": "8c64eac0a8f75a918ab6ddcbe8198920189057bcb6b48236bcb78617a21f82d3",
+  "graph_snapshot_id": "d691ad319bfeb28b18d07ec5a2bc59eaeea2cf88f76ae6671294ac12beba78ae",
+  "question_count": 6,
+  "pilot_count": 6,
+  "held_out_count": 0,
+  "split_rule": "exact 2-corridor pilot subset of relate-docs-v2.jsonl"
+}
